@@ -1,4 +1,4 @@
-module lib
+module github.com/tweetyah/lib
 
 go 1.19
 
