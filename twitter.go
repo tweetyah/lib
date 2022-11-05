@@ -36,9 +36,15 @@ func GetTwitterTokens(code string) (*TwitterAuthResponse, error) {
 	}
 	defer resp.Body.Close()
 	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "(GetTwitterTokens) ioutil.ReadAll")
+	}
 
 	var twitterAuthResp TwitterAuthResponse
 	err = json.Unmarshal([]byte(bodyText), &twitterAuthResp)
+	if err != nil {
+		return nil, errors.Wrap(err, "(GetTwitterTokens) json.Unmarshal")
+	}
 	return &twitterAuthResp, nil
 }
 
@@ -59,13 +65,19 @@ func GetTwitterUserDetails(token string) (*TwitterUserResponse, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, errors.Wrap(err, "(GetTwitterTokens) client.Do")
+		return nil, errors.Wrap(err, "(GetTwitterUserDetails) client.Do")
 	}
 	defer resp.Body.Close()
 	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "(GetTwitterUserDetail) ioutil.ReadAll")
+	}
 
 	var response TwitterUserResponse
 	err = json.Unmarshal([]byte(bodyText), &response)
+	if err != nil {
+		return nil, errors.Wrap(err, "(GetTwitterUserDetails) json.Unmashal")
+	}
 	return &response, nil
 }
 
@@ -148,4 +160,37 @@ func SendTweet(text string, token string) (*SendTweetResults, error) {
 		}
 		return &results, nil
 	}
+}
+
+func GetTwitterTokensViaRefresh(refreshToken string) (*TwitterAuthResponse, error) {
+	data := url.Values{
+		"refresh_token": {refreshToken},
+		"grant_type":    {"refresh_token"},
+		"client_id":     {os.Getenv("VITE_TWITTER_CLIENT_ID")},
+	}
+
+	req, err := http.NewRequest("POST", "https://api.twitter.com/2/oauth2/token", strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, errors.Wrap(err, "(GetTwitterTokensViaRefresh) http.NewRequest")
+	}
+	req.SetBasicAuth(os.Getenv("VITE_TWITTER_CLIENT_ID"), os.Getenv("TWITTER_CLIENT_SECRET"))
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "(GetTwitterTokensViaRefresh) client.Do")
+	}
+	defer resp.Body.Close()
+	bodyText, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.Wrap(err, "(GetTwitterTokensViaRefresh) ioutil.ReadAll")
+	}
+
+	var twitterAuthResp TwitterAuthResponse
+	err = json.Unmarshal([]byte(bodyText), &twitterAuthResp)
+	if err != nil {
+		return nil, errors.Wrap(err, "(GetTwitterTokensViaRefresh) json.Unmarshal")
+	}
+	return &twitterAuthResp, nil
+
 }
