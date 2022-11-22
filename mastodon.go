@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -14,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-func GetMastodonTokens(code string) (*MastodonAuthResponse, error) {
+func GetMastodonTokens(instanceDomain, code string) (*MastodonAuthResponse, error) {
 	data := url.Values{
 		"code":          {code},
 		"grant_type":    {"authorization_code"},
@@ -24,9 +23,9 @@ func GetMastodonTokens(code string) (*MastodonAuthResponse, error) {
 		"scope":         {"read write follow"},
 	}
 
-	log.Println(data)
+	mastodonUrl := fmt.Sprintf("https://%v/oauth/token", instanceDomain)
 
-	req, err := http.NewRequest("POST", "https://fosstodon.org/oauth/token", strings.NewReader(data.Encode()))
+	req, err := http.NewRequest("POST", mastodonUrl, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, errors.Wrap(err, "(GetMastodonTokens) http.NewRequest")
 	}
@@ -58,8 +57,9 @@ type MastodonAuthResponse struct {
 	TokenType   string `json:"token_type"`
 }
 
-func GetMastodonUserDetails(token string) (*MastodonGetUserResponse, error) {
-	req, err := http.NewRequest("GET", "https://fosstodon.org/api/v1/accounts/verify_credentials", nil)
+func GetMastodonUserDetails(instanceDomain, token string) (*MastodonGetUserResponse, error) {
+	mastodonUrl := fmt.Sprintf("https://%v/api/v1/accounts/verify_credentials", instanceDomain)
+	req, err := http.NewRequest("GET", mastodonUrl, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "(GetMastodonUserDetails) http.NewRequest")
 	}
