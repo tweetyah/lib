@@ -19,7 +19,7 @@ func GetTwitterTokens(code string) (*TwitterAuthResponse, error) {
 		"code":          {code},
 		"grant_type":    {"authorization_code"},
 		"client_id":     {os.Getenv("VITE_TWITTER_CLIENT_ID")},
-		"redirect_uri":  {os.Getenv("VITE_TWITTER_REDIRECT_URI")},
+		"redirect_uri":  {os.Getenv("VITE_REDIRECT_URI")},
 		"code_verifier": {"challenge"},
 	}
 
